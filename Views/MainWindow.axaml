@@ -3,202 +3,320 @@
         xmlns:vm="using:AppBundle.Avalonia.ViewModels"
         x:Class="AppBundle.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Ninite Clone - Batch Installer"
-        Width="600" Height="500"
+        Title="AetherInstall — One-Breath App Setup"
+        Width="800" Height="600"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
-        Background="#FFF5F5F5">
+        Background="{StaticResource Background}"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1">
 
-    <Grid RowDefinitions="80,*">
+    <DockPanel LastChildFill="True">
         
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#FF0066CC">
-            <StackPanel Orientation="Horizontal" 
-                        VerticalAlignment="Center" 
-                        Margin="30,0">
-                <!-- Logo Placeholder -->
-                <Border Width="48" Height="48" 
-                        Background="#FFFFFF" 
-                        CornerRadius="8"
-                        Margin="0,0,12,0">
-                    <TextBlock Text="📦" 
-                               FontSize="32" 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center"/>
-                </Border>
+        <!-- Header with Branding -->
+        <Border DockPanel.Dock="Top" 
+                Height="90" 
+                Background="Transparent"
+                BorderBrush="{StaticResource Border}"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <!-- Left: Logo and Title -->
+                <StackPanel Grid.Column="0" 
+                            Orientation="Horizontal" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Left"
+                            Margin="32,0,0,0">
+                    <!-- Download Cloud Icon -->
+                    <PathIcon Data="M17,13L12,18L7,13H10V9H14V13M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03Z"
+                              Width="36" Height="36"
+                              Foreground="{StaticResource Accent}"
+                              Effect="{StaticResource GlowPrimary}"/>
+                    
+                    <TextBlock Text="AetherInstall" 
+                               FontSize="28" 
+                               FontWeight="Bold" 
+                               Foreground="{StaticResource TextPrimary}"
+                               VerticalAlignment="Center"
+                               Margin="14,0,0,0"/>
+                    
+                    <TextBlock Text="One-Breath App Setup" 
+                               FontSize="12" 
+                               Foreground="{StaticResource TextTertiary}"
+                               VerticalAlignment="Center"
+                               FontStyle="Italic"
+                               Margin="10,4,0,0"/>
+                </StackPanel>
                 
-                <TextBlock Text="Ninite Clone" 
-                           FontSize="24" 
-                           FontWeight="SemiBold" 
-                           Foreground="White" 
-                           VerticalAlignment="Center"/>
-            </StackPanel>
+                <!-- Right: Settings Button -->
+                <Button Grid.Column="1" 
+                        Classes="IconButton"
+                        Width="40" Height="40"
+                        Margin="0,0,32,0"
+                        ToolTip.Tip="Settings">
+                    <PathIcon Data="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10Z"
+                              Width="20" Height="20"
+                              Foreground="{StaticResource TextTertiary}"/>
+                </Button>
+            </Grid>
         </Border>
 
-        <!-- Wizard Content -->
-        <TabControl Grid.Row="1" 
-                    SelectedIndex="{Binding CurrentPage}"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Margin="0,20,0,0">
-            
-            <TabControl.Styles>
-                <Style Selector="TabControl">
-                    <Setter Property="TabStripPlacement" Value="Bottom"/>
-                </Style>
-                <Style Selector="TabItem">
-                    <Setter Property="IsEnabled" Value="False"/>
-                    <Setter Property="IsVisible" Value="False"/>
-                </Style>
-            </TabControl.Styles>
+        <!-- Main Content Area -->
+        <Grid Margin="32,20,32,32">
+            <Border Background="{StaticResource Surface}"
+                    CornerRadius="20">
+                <Border Background="{StaticResource Card}"
+                        CornerRadius="18"
+                        Padding="2">
+                    <Grid RowDefinitions="*,Auto">
+                        
+                        <!-- Page Content -->
+                        <TabControl Grid.Row="0" 
+                                    SelectedIndex="{Binding CurrentPage}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="28">
+                            
+                            <TabControl.Styles>
+                                <Style Selector="TabControl">
+                                    <Setter Property="TabStripPlacement" Value="Bottom"/>
+                                </Style>
+                                <Style Selector="TabItem">
+                                    <Setter Property="IsEnabled" Value="False"/>
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </Style>
+                            </TabControl.Styles>
 
-            <!-- Page 0: Welcome -->
-            <TabItem>
-                <StackPanel Margin="40" Spacing="20">
-                    <TextBlock Text="Welcome to Ninite Clone" 
-                               FontSize="22" 
-                               FontWeight="Medium"/>
-                    
-                    <TextBlock Text="Select your apps below and we'll handle the rest – latest versions, no junk." 
-                               TextWrapping="Wrap" 
-                               FontSize="14" 
-                               Foreground="#FF555555"/>
-                    
-                    <Border Height="200"/>
-                    
-                    <StackPanel Orientation="Horizontal" 
-                                HorizontalAlignment="Right" 
-                                Spacing="12">
-                        <Button Content="Cancel" 
-                                Command="{Binding CancelCommand}" 
-                                Width="90"/>
-                        <Button Content="Next >" 
-                                Command="{Binding NextCommand}" 
-                                Classes="primary"
-                                Width="90"/>
-                    </StackPanel>
-                </StackPanel>
-            </TabItem>
+                            <!-- Page 0: Welcome -->
+                            <TabItem>
+                                <StackPanel Spacing="24" 
+                                            HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center">
+                                    <!-- Welcome Icon -->
+                                    <PathIcon Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                                              Width="56" Height="56"
+                                              Foreground="{StaticResource Accent}"
+                                              Effect="{StaticResource GlowPrimary}"
+                                              HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="Welcome to AetherInstall" 
+                                               FontSize="32" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource TextPrimary}"
+                                               HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="Install your favorite apps in one breath. Latest versions. Zero bloatware." 
+                                               FontSize="15" 
+                                               Foreground="{StaticResource TextSecondary}"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="500"/>
+                                    
+                                    <Border Background="{StaticResource Card}"
+                                            CornerRadius="14"
+                                            Padding="18,14"
+                                            HorizontalAlignment="Center"
+                                            Effect="{StaticResource GlowSecondary}">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <PathIcon Data="M6,15C6.56,15 7.03,15.34 7.28,15.84L8.26,17.72C8.47,18.11 8.85,18.36 9.25,18.43L11.39,18.76C12,18.86 12.5,19.32 12.63,19.92C12.76,20.53 12.5,21.15 12,21.5L10.42,22.65C10.08,22.89 9.87,23.3 9.87,23.73V25.93C9.87,26.55 9.5,27.1 8.92,27.34C8.34,27.58 7.68,27.43 7.25,26.94L5.97,25.5C5.71,25.21 5.35,25.04 4.97,25.04H2.75C2.12,25.04 1.55,24.7 1.27,24.13C0.98,23.56 1.04,22.89 1.43,22.39L2.78,20.67C3,20.39 3.12,20.04 3.12,19.68V17.5C3.12,16.88 3.47,16.32 4.03,16.06C4.58,15.8 5.24,15.9 5.69,16.32L6.3,16.87L6,15M18,15C18.56,15 19.03,15.34 19.28,15.84L20.26,17.72C20.47,18.11 20.85,18.36 21.25,18.43L23.39,18.76C24,18.86 24.5,19.32 24.63,19.92C24.76,20.53 24.5,21.15 24,21.5L22.42,22.65C22.08,22.89 21.87,23.3 21.87,23.73V25.93C21.87,26.55 21.5,27.1 20.92,27.34C20.34,27.58 19.68,27.43 19.25,26.94L17.97,25.5C17.71,25.21 17.35,25.04 16.97,25.04H14.75C14.12,25.04 13.55,24.7 13.27,24.13C12.98,23.56 13.04,22.89 13.43,22.39L14.78,20.67C15,20.39 15.12,20.04 15.12,19.68V17.5C15.12,16.88 15.47,16.32 16.03,16.06C16.58,15.8 17.24,15.9 17.69,16.32L18.3,16.87L18,15M12,11A2,2 0 0,1 10,9A2,2 0 0,1 12,7A2,2 0 0,1 14,9A2,2 0 0,1 12,11M12,14C7.58,14 4,15.79 4,18V20H20V18C20,15.79 16.42,14 12,14Z"
+                                                      Width="16" Height="16"
+                                                      Foreground="{StaticResource SecondaryAccent}"
+                                                      VerticalAlignment="Center"/>
+                                            <TextBlock Text="Hold Ctrl to select multiple apps" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource TextTertiary}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </TabItem>
 
-            <!-- Page 1: App Selection -->
-            <TabItem>
-                <StackPanel Margin="40" Spacing="20">
-                    <TextBlock Text="Choose Apps to Install/Update" 
-                               FontSize="22" 
-                               FontWeight="Medium"/>
-                    
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                  Height="250">
-                        <ItemsControl ItemsSource="{Binding Apps}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Columns="2"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected}" 
-                                              Content="{Binding Name}" 
-                                              Margin="10"
-                                              FontSize="14"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                    
-                    <TextBlock Text="{Binding SelectedCount, StringFormat='Selected: {0} apps'}" 
-                               FontSize="14" 
-                               Foreground="#FF0066CC" 
-                               HorizontalAlignment="Center"/>
-                    
-                    <StackPanel Orientation="Horizontal" 
-                                HorizontalAlignment="Right" 
-                                Spacing="12">
-                        <Button Content="&lt; Back" 
-                                Command="{Binding BackCommand}" 
-                                Width="90"/>
-                        <Button Content="Install" 
-                                Command="{Binding InstallCommand}" 
-                                IsEnabled="{Binding HasSelections}"
-                                Classes="primary"
-                                Width="90"/>
-                    </StackPanel>
-                </StackPanel>
-            </TabItem>
+                            <!-- Page 1: App Selection -->
+                            <TabItem>
+                                <Grid RowDefinitions="Auto,*">
+                                    <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,16">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <PathIcon Data="M4,6H2V20A2,2 0 0,0 4,22H18V20H4V6M20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2M20,12H8V4H20V12Z"
+                                                      Width="22" Height="22"
+                                                      Foreground="{StaticResource Accent}"
+                                                      VerticalAlignment="Center"/>
+                                            <TextBlock Text="Select Your Apps" 
+                                                       FontSize="24" 
+                                                       FontWeight="SemiBold" 
+                                                       Foreground="{StaticResource TextPrimary}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Choose apps to install or update. Only official, latest versions." 
+                                                   FontSize="13" 
+                                                   Foreground="{StaticResource TextSecondary}"
+                                                   Margin="32,0,0,0"/>
+                                    </StackPanel>
+                                    
+                                    <ScrollViewer Grid.Row="1" 
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding Apps}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="card" 
+                                                            Margin="0,0,12,12" 
+                                                            MinWidth="310"
+                                                            MaxWidth="310">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                                            <CheckBox Grid.Column="0" 
+                                                                      IsChecked="{Binding IsSelected}" 
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="0,0,12,0"/>
+                                                            
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Name}" 
+                                                                           FontSize="14" 
+                                                                           FontWeight="Medium" 
+                                                                           Foreground="{StaticResource TextPrimary}"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding Description}" 
+                                                                           FontSize="11" 
+                                                                           Foreground="{StaticResource TextTertiary}"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                            
+                                                            <Border Grid.Column="2" 
+                                                                    Width="32" Height="32" 
+                                                                    CornerRadius="16"
+                                                                    Background="{StaticResource Surface}"
+                                                                    Margin="12,0,0,0">
+                                                                <!-- Package Icon -->
+                                                                <PathIcon Data="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L6.04,7.5L12,10.85L17.96,7.5L12,4.15Z"
+                                                                          Width="16" Height="16"
+                                                                          Foreground="{StaticResource Accent}"/>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </TabItem>
 
-            <!-- Page 2: Progress -->
-            <TabItem>
-                <StackPanel Margin="40" 
-                            Spacing="30" 
-                            VerticalAlignment="Center">
-                    <TextBlock Text="Downloading &amp; Installing..." 
-                               FontSize="22" 
-                               FontWeight="Medium"
-                               HorizontalAlignment="Center"/>
-                    
-                    <ProgressBar Value="{Binding OverallProgress}" 
-                                 Minimum="0" 
-                                 Maximum="100" 
-                                 Height="12" 
-                                 Width="400"
-                                 IsIndeterminate="{Binding IsIndeterminate}"/>
-                    
-                    <TextBlock Text="{Binding StatusText}" 
-                               HorizontalAlignment="Center" 
-                               FontSize="13" 
-                               Foreground="#FF555555"/>
-                    
-                    <ListBox ItemsSource="{Binding InstallLogs}" 
-                             Height="100"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             Background="White"
-                             BorderBrush="#FFCCCCCC"
-                             BorderThickness="1"/>
-                </StackPanel>
-            </TabItem>
+                            <!-- Page 2: Progress -->
+                            <TabItem>
+                                <StackPanel Spacing="28" 
+                                            HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"
+                                            MaxWidth="580">
+                                    <!-- Loading Icon -->
+                                    <PathIcon Data="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"
+                                              Width="48" Height="48"
+                                              Foreground="{StaticResource Accent}"
+                                              Effect="{StaticResource GlowPrimary}"
+                                              HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="Installing Your Universe..." 
+                                               FontSize="26" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource TextPrimary}"
+                                               HorizontalAlignment="Center"/>
+                                    
+                                    <ProgressBar Value="{Binding OverallProgress}" 
+                                                 Width="480" 
+                                                 Height="8"
+                                                 IsIndeterminate="{Binding IsIndeterminate}"/>
+                                    
+                                    <TextBlock Text="{Binding StatusText}" 
+                                               FontSize="14" 
+                                               Foreground="{StaticResource TextSecondary}"
+                                               HorizontalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="480"/>
+                                    
+                                    <Border Background="{StaticResource Card}"
+                                            CornerRadius="14"
+                                            Padding="16"
+                                            Width="480">
+                                        <ListBox ItemsSource="{Binding InstallLogs}" 
+                                                 MaxHeight="120"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                    </Border>
+                                </StackPanel>
+                            </TabItem>
 
-            <!-- Page 3: Finish -->
-            <TabItem>
-                <StackPanel Margin="40" 
-                            Spacing="20" 
-                            VerticalAlignment="Center">
-                    <!-- Check Icon Placeholder -->
-                    <Border Width="64" Height="64" 
-                            Background="#FF10B981" 
-                            CornerRadius="32"
-                            HorizontalAlignment="Center">
-                        <TextBlock Text="✓" 
-                                   FontSize="48" 
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                    </Border>
-                    
-                    <TextBlock Text="All Done!" 
-                               FontSize="24" 
-                               FontWeight="SemiBold" 
-                               HorizontalAlignment="Center"/>
-                    
-                    <TextBlock Text="{Binding SuccessMessage}" 
-                               FontSize="14" 
-                               HorizontalAlignment="Center" 
-                               Foreground="#FF555555"
-                               TextWrapping="Wrap"
-                               TextAlignment="Center"/>
-                    
-                    <Border Height="40"/>
-                    
-                    <Button Content="Finish" 
-                            Command="{Binding FinishCommand}" 
-                            HorizontalAlignment="Center"
-                            Classes="primary"
-                            Width="100"/>
-                </StackPanel>
-            </TabItem>
+                            <!-- Page 3: Finish -->
+                            <TabItem>
+                                <StackPanel Spacing="28" 
+                                            HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center">
+                                    <!-- Success Icon -->
+                                    <PathIcon Data="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"
+                                              Width="72" Height="72"
+                                              Foreground="{StaticResource Success}"
+                                              Effect="{StaticResource GlowSuccess}"
+                                              HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="All Systems Go!" 
+                                               FontSize="30" 
+                                               FontWeight="Bold" 
+                                               Foreground="{StaticResource TextPrimary}"
+                                               HorizontalAlignment="Center"/>
+                                    
+                                    <TextBlock Text="{Binding SuccessMessage}" 
+                                               FontSize="15" 
+                                               Foreground="{StaticResource TextSecondary}"
+                                               TextAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="450"/>
+                                    
+                                    <StackPanel Orientation="Horizontal" Spacing="14">
+                                        <Button Classes="Secondary"
+                                                Width="100" Height="44"
+                                                Command="{Binding FinishCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                          Width="16" Height="16"/>
+                                                <TextBlock Text="Close" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </TabItem>
 
-        </TabControl>
+                        </TabControl>
+                        
+                        <!-- Bottom Action Buttons -->
+                        <StackPanel Grid.Row="1" 
+                                    Orientation="Horizontal" 
+                                    HorizontalAlignment="Right"
+                                    Spacing="12"
+                                    Margin="28,0,28,28">
+                            <Button IsVisible="{Binding CanGoBack}"
+                                    Classes="Secondary"
+                                    Width="100" Height="42"
+                                    Command="{Binding BackCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                                              Width="16" Height="16"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock Text="Back" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Content="{Binding ActionButtonText}" 
+                                    Command="{Binding ActionCommand}" 
+                                    IsEnabled="{Binding CanProceed}"
+                                    IsDefault="True"
+                                    Classes="Primary"
+                                    Width="140" Height="42"/>
+                        </StackPanel>
+                        
+                    </Grid>
+                </Border>
+            </Border>
+        </Grid>
 
-    </Grid>
+    </DockPanel>
 
 </Window>

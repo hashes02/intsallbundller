@@ -1,13 +1,15 @@
-# 🚀 AppBundle - Modern Application Installer
+# ✨ AetherInstall — One-Breath App Setup
 
 <div align="center">
 
-![AppBundle Logo](https://img.shields.io/badge/AppBundle-v1.0-blue?style=for-the-badge)
+![AetherInstall](https://img.shields.io/badge/AetherInstall-v1.0-00E6FF?style=for-the-badge)
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet)
-![Avalonia](https://img.shields.io/badge/Avalonia-11.1.3-9B4F96?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Avalonia](https://img.shields.io/badge/Avalonia-11.1.3-7B61FF?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-00FF9D?style=for-the-badge)
 
-**A beautiful, modern, cross-platform application installer inspired by Ninite**
+**Your Apps. One Breath. Instant.**
+
+*A stunning, professional application installer with AetherGlow Pro dark theme*
 
 [Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Screenshots](#-screenshots) • [Development](#-development)
 
@@ -15,30 +17,40 @@
 
 ---
 
-## 📖 Overview
+## 🌌 Overview
 
-AppBundle is a modern, cross-platform application installer built with **Avalonia UI** and **.NET 8**. It provides a clean, minimalistic interface inspired by Tailwind CSS design principles, allowing you to install multiple essential applications with a single click.
+**AetherInstall** is a next-generation application installer built with **Avalonia UI** and **.NET 8**, featuring the exclusive **AetherGlow Pro** color system. Install your favorite apps in one breath with a beautiful glass-morphism UI, professional acrylic effects, and smooth animations.
 
-### Why AppBundle?
+### Why AetherInstall?
 
-- 🎨 **Beautiful Modern UI** - Tailwind CSS-inspired design with smooth animations
+- ✨ **AetherGlow Pro Theme** - Professional dark theme with 5-tier accent states and dynamic glow effects
+- 🎨 **Glass Morphism UI** - Acrylic blur, card hover states, and smooth cross-fade transitions
 - 🌍 **Cross-Platform** - Works on Windows, macOS, and Linux (via Avalonia)
 - ⚡ **Fast & Lightweight** - Single-file executable (~117MB)
 - 🔒 **Secure** - SHA256 verification and automatic latest version resolution
-- 🎯 **Smart** - Detects already-installed applications
+- 🎯 **Smart Detection** - Detects already-installed applications
 - 🚫 **No Bloatware** - Clean, silent installations without bundled offers
+- ♿ **Accessible** - AA/AAA compliant contrast ratios
 
 ---
 
 ## ✨ Features
 
 ### Core Functionality
-- **One-Click Installation** - Install multiple applications simultaneously
-- **Auto-Update Resolution** - Automatically fetches latest versions
+- **One-Breath Installation** - Install multiple applications simultaneously with one click
+- **Auto-Update Resolution** - Automatically fetches latest official versions
 - **Silent Installation** - No popups or user intervention required
-- **Skip Installed Apps** - Detects and skips already-installed software
-- **Progress Tracking** - Real-time status updates for each application
+- **Smart Detection** - Detects and skips already-installed software
+- **Real-Time Progress** - Live status updates with beautiful progress indicators
 - **Error Handling** - Comprehensive retry logic with fallback URLs
+
+### UI/UX Excellence
+- **AetherGlow Pro Colors** - Cyan accent (#00E6FF) with dynamic hover states
+- **Glass Cards** - Semi-transparent cards with backdrop blur
+- **Glow Effects** - Dynamic drop shadows on interactive elements
+- **Typography Hierarchy** - Inter font family with proper weight scales
+- **Micro-Interactions** - Smooth transitions on hover, press, and page changes
+- **Responsive Grid** - Wrap panel layout for flexible app card display
 
 ### Supported Applications
 

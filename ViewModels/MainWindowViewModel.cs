@@ -12,7 +12,7 @@ using AppBundle.Avalonia.Services;
 namespace AppBundle.Avalonia.ViewModels;
 
 /// <summary>
-/// Wizard-based main window view model with multiple pages
+/// AetherInstall wizard-based main window view model with multiple pages
 /// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
@@ -38,10 +38,33 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public int SelectedCount => Apps.Count(a => a.IsSelected);
     public bool HasSelections => SelectedCount > 0;
+    
+    // Navigation properties for AetherInstall UI
+    public bool CanGoBack => CurrentPage > 0 && CurrentPage < 2;
+    public bool CanProceed => CurrentPage switch
+    {
+        0 => true,
+        1 => HasSelections,
+        _ => false
+    };
+    
+    public string ActionButtonText => CurrentPage switch
+    {
+        0 => "Get Started →",
+        1 => $"Install {SelectedCount} Apps",
+        _ => "Next"
+    };
 
     public MainWindowViewModel()
     {
         _ = LoadAppsAsync();
+    }
+
+    partial void OnCurrentPageChanged(int value)
+    {
+        OnPropertyChanged(nameof(CanGoBack));
+        OnPropertyChanged(nameof(CanProceed));
+        OnPropertyChanged(nameof(ActionButtonText));
     }
 
     private async Task LoadAppsAsync()
@@ -74,6 +97,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         OnPropertyChanged(nameof(SelectedCount));
                         OnPropertyChanged(nameof(HasSelections));
+                        OnPropertyChanged(nameof(CanProceed));
+                        OnPropertyChanged(nameof(ActionButtonText));
                     }
                 };
                 Apps.Add(appViewModel);
@@ -91,6 +116,20 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (CurrentPage < 3)
             CurrentPage++;
+    }
+    
+    [RelayCommand]
+    private void Action()
+    {
+        // Unified action button command
+        if (CurrentPage == 0)
+        {
+            Next();
+        }
+        else if (CurrentPage == 1 && HasSelections)
+        {
+            _ = Install();
+        }
     }
 
     [RelayCommand]

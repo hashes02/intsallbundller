@@ -23,11 +23,23 @@ public partial class AppItemViewModel : ViewModelBase
 
     public string Id => app.Id;
     public string Name => app.Name;
+    public string Description => GetDescription(app.Source);
 
     public AppItemViewModel(AppInfo app)
     {
         this.app = app;
         IsSelected = app.IsSelected;
+    }
+    
+    private static string GetDescription(string source)
+    {
+        return source switch
+        {
+            "winget" => "From Microsoft Store",
+            "github" => "From GitHub Releases",
+            "direct" => "Official Download",
+            _ => "Latest Version"
+        };
     }
 
     partial void OnStatusChanged(InstallStatus value)
