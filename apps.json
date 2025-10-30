@@ -1,0 +1,49 @@
+{
+  "apps": [
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "source": "omaha",
+      "args": "/silent /install",
+      "detect": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"
+    },
+    {
+      "id": "vlc",
+      "name": "VLC Media Player",
+      "source": "videolan",
+      "detect": "HKLM\\SOFTWARE\\VideoLAN\\VLC"
+    },
+    {
+      "id": "m365",
+      "name": "Microsoft 365 Apps",
+      "source": "direct",
+      "url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?productReleaseID=O365ProPlusRetail&platform=x64&language=en-us&version=O16GA",
+      "args": "/S",
+      "detect": "HKLM\\SOFTWARE\\Microsoft\\Office\\ClickToRun\\Configuration"
+    },
+    {
+      "id": "7zip",
+      "name": "7-Zip",
+      "source": "direct",
+      "url": "https://www.7-zip.org/a/7z2501-x64.exe",
+      "args": "/S",
+      "detect": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\7-Zip"
+    },
+    {
+      "id": "rustdesk",
+      "name": "RustDesk",
+      "source": "direct",
+      "url": "https://github.com/rustdesk/rustdesk/releases/download/1.4.3/rustdesk-1.4.3-x86_64.exe",
+      "args": "/S",
+      "detect": "HKLM\\SOFTWARE\\RustDesk"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "source": "direct",
+      "url": "https://zoom.us/client/6.6.6.19875/ZoomInstallerFull.exe",
+      "args": "/quiet /norestart",
+      "detect": "HKLM\\SOFTWARE\\Zoom\\ZDC"
+    }
+  ]
+}

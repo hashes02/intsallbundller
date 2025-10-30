@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AppBundle.Avalonia.ViewModels"
+        x:Class="AppBundle.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="AppBundle"
+        Width="800" Height="700"
+        MinWidth="700" MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="32" RowDefinitions="Auto,Auto,Auto,*,Auto">
+        
+        <!-- Header Section -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,32">
+            <TextBlock Text="{Binding Title}" Classes="title"/>
+            <TextBlock Text="{Binding Subtitle}" Classes="subtitle"/>
+        </StackPanel>
+
+        <!-- Search Section -->
+        <TextBox Grid.Row="1" 
+                 Text="{Binding SearchText}" 
+                 Classes="search"
+                 Margin="0,0,0,24"/>
+
+        <!-- Apps Header -->
+        <TextBlock Grid.Row="2" 
+                   Text="Available Applications" 
+                   FontSize="18" 
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Margin="0,0,0,16"/>
+
+        <!-- Apps List -->
+        <ScrollViewer Grid.Row="3" 
+                      Margin="0,0,0,24"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            
+            <ItemsControl ItemsSource="{Binding FilteredApps}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" 
+                                Classes.selected="{Binding IsSelected}"
+                                PointerPressed="OnAppCardPressed">
+                            
+                            <Grid ColumnDefinitions="Auto,*">
+                                
+                                <!-- Checkbox -->
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsSelected}"
+                                          Classes="modern"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,16,0"/>
+                                
+                                <!-- App Info -->
+                                <StackPanel Grid.Column="1" 
+                                            Spacing="4"
+                                            VerticalAlignment="Center">
+                                    
+                                    <TextBlock Text="{Binding Name}" 
+                                               Classes="app-name"/>
+                                    
+                                    <TextBlock Text="{Binding StatusText}" 
+                                               Classes="app-status"/>
+                                    
+                                </StackPanel>
+                                
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Install Button -->
+        <Button Grid.Row="4"
+                Content="{Binding InstallButtonText}"
+                Classes="primary"
+                Command="{Binding InstallSelectedAppsCommand}"
+                IsEnabled="{Binding CanInstall}"
+                HorizontalAlignment="Stretch"/>
+
+    </Grid>
+
+</Window>
