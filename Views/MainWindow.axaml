@@ -3,82 +3,201 @@
         xmlns:vm="using:AppBundle.Avalonia.ViewModels"
         x:Class="AppBundle.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="AppBundle"
-        Width="800" Height="700"
-        MinWidth="700" MinHeight="600"
-        WindowStartupLocation="CenterScreen">
+        Title="Ninite Clone - Batch Installer"
+        Width="600" Height="500"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Background="#FFF5F5F5">
 
-    <Grid Margin="32" RowDefinitions="Auto,Auto,Auto,*,Auto">
+    <Grid RowDefinitions="80,*">
         
-        <!-- Header Section -->
-        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,32">
-            <TextBlock Text="{Binding Title}" Classes="title"/>
-            <TextBlock Text="{Binding Subtitle}" Classes="subtitle"/>
-        </StackPanel>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF0066CC">
+            <StackPanel Orientation="Horizontal" 
+                        VerticalAlignment="Center" 
+                        Margin="30,0">
+                <!-- Logo Placeholder -->
+                <Border Width="48" Height="48" 
+                        Background="#FFFFFF" 
+                        CornerRadius="8"
+                        Margin="0,0,12,0">
+                    <TextBlock Text="📦" 
+                               FontSize="32" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Border>
+                
+                <TextBlock Text="Ninite Clone" 
+                           FontSize="24" 
+                           FontWeight="SemiBold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-        <!-- Search Section -->
-        <TextBox Grid.Row="1" 
-                 Text="{Binding SearchText}" 
-                 Classes="search"
-                 Margin="0,0,0,24"/>
-
-        <!-- Apps Header -->
-        <TextBlock Grid.Row="2" 
-                   Text="Available Applications" 
-                   FontSize="18" 
-                   FontWeight="SemiBold"
-                   Foreground="{StaticResource TextPrimaryBrush}"
-                   Margin="0,0,0,16"/>
-
-        <!-- Apps List -->
-        <ScrollViewer Grid.Row="3" 
-                      Margin="0,0,0,24"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
+        <!-- Wizard Content -->
+        <TabControl Grid.Row="1" 
+                    SelectedIndex="{Binding CurrentPage}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Margin="0,20,0,0">
             
-            <ItemsControl ItemsSource="{Binding FilteredApps}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Classes="card" 
-                                Classes.selected="{Binding IsSelected}"
-                                PointerPressed="OnAppCardPressed">
-                            
-                            <Grid ColumnDefinitions="Auto,*">
-                                
-                                <!-- Checkbox -->
-                                <CheckBox Grid.Column="0"
-                                          IsChecked="{Binding IsSelected}"
-                                          Classes="modern"
-                                          VerticalAlignment="Center"
-                                          Margin="0,0,16,0"/>
-                                
-                                <!-- App Info -->
-                                <StackPanel Grid.Column="1" 
-                                            Spacing="4"
-                                            VerticalAlignment="Center">
-                                    
-                                    <TextBlock Text="{Binding Name}" 
-                                               Classes="app-name"/>
-                                    
-                                    <TextBlock Text="{Binding StatusText}" 
-                                               Classes="app-status"/>
-                                    
-                                </StackPanel>
-                                
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+            <TabControl.Styles>
+                <Style Selector="TabControl">
+                    <Setter Property="TabStripPlacement" Value="Bottom"/>
+                </Style>
+                <Style Selector="TabItem">
+                    <Setter Property="IsEnabled" Value="False"/>
+                    <Setter Property="IsVisible" Value="False"/>
+                </Style>
+            </TabControl.Styles>
 
-        <!-- Install Button -->
-        <Button Grid.Row="4"
-                Content="{Binding InstallButtonText}"
-                Classes="primary"
-                Command="{Binding InstallSelectedAppsCommand}"
-                IsEnabled="{Binding CanInstall}"
-                HorizontalAlignment="Stretch"/>
+            <!-- Page 0: Welcome -->
+            <TabItem>
+                <StackPanel Margin="40" Spacing="20">
+                    <TextBlock Text="Welcome to Ninite Clone" 
+                               FontSize="22" 
+                               FontWeight="Medium"/>
+                    
+                    <TextBlock Text="Select your apps below and we'll handle the rest – latest versions, no junk." 
+                               TextWrapping="Wrap" 
+                               FontSize="14" 
+                               Foreground="#FF555555"/>
+                    
+                    <Border Height="200"/>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Right" 
+                                Spacing="12">
+                        <Button Content="Cancel" 
+                                Command="{Binding CancelCommand}" 
+                                Width="90"/>
+                        <Button Content="Next >" 
+                                Command="{Binding NextCommand}" 
+                                Classes="primary"
+                                Width="90"/>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <!-- Page 1: App Selection -->
+            <TabItem>
+                <StackPanel Margin="40" Spacing="20">
+                    <TextBlock Text="Choose Apps to Install/Update" 
+                               FontSize="22" 
+                               FontWeight="Medium"/>
+                    
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                  Height="250">
+                        <ItemsControl ItemsSource="{Binding Apps}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}" 
+                                              Content="{Binding Name}" 
+                                              Margin="10"
+                                              FontSize="14"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    
+                    <TextBlock Text="{Binding SelectedCount, StringFormat='Selected: {0} apps'}" 
+                               FontSize="14" 
+                               Foreground="#FF0066CC" 
+                               HorizontalAlignment="Center"/>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Right" 
+                                Spacing="12">
+                        <Button Content="&lt; Back" 
+                                Command="{Binding BackCommand}" 
+                                Width="90"/>
+                        <Button Content="Install" 
+                                Command="{Binding InstallCommand}" 
+                                IsEnabled="{Binding HasSelections}"
+                                Classes="primary"
+                                Width="90"/>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <!-- Page 2: Progress -->
+            <TabItem>
+                <StackPanel Margin="40" 
+                            Spacing="30" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Downloading &amp; Installing..." 
+                               FontSize="22" 
+                               FontWeight="Medium"
+                               HorizontalAlignment="Center"/>
+                    
+                    <ProgressBar Value="{Binding OverallProgress}" 
+                                 Minimum="0" 
+                                 Maximum="100" 
+                                 Height="12" 
+                                 Width="400"
+                                 IsIndeterminate="{Binding IsIndeterminate}"/>
+                    
+                    <TextBlock Text="{Binding StatusText}" 
+                               HorizontalAlignment="Center" 
+                               FontSize="13" 
+                               Foreground="#FF555555"/>
+                    
+                    <ListBox ItemsSource="{Binding InstallLogs}" 
+                             Height="100"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             Background="White"
+                             BorderBrush="#FFCCCCCC"
+                             BorderThickness="1"/>
+                </StackPanel>
+            </TabItem>
+
+            <!-- Page 3: Finish -->
+            <TabItem>
+                <StackPanel Margin="40" 
+                            Spacing="20" 
+                            VerticalAlignment="Center">
+                    <!-- Check Icon Placeholder -->
+                    <Border Width="64" Height="64" 
+                            Background="#FF10B981" 
+                            CornerRadius="32"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="✓" 
+                                   FontSize="48" 
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    
+                    <TextBlock Text="All Done!" 
+                               FontSize="24" 
+                               FontWeight="SemiBold" 
+                               HorizontalAlignment="Center"/>
+                    
+                    <TextBlock Text="{Binding SuccessMessage}" 
+                               FontSize="14" 
+                               HorizontalAlignment="Center" 
+                               Foreground="#FF555555"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"/>
+                    
+                    <Border Height="40"/>
+                    
+                    <Button Content="Finish" 
+                            Command="{Binding FinishCommand}" 
+                            HorizontalAlignment="Center"
+                            Classes="primary"
+                            Width="100"/>
+                </StackPanel>
+            </TabItem>
+
+        </TabControl>
 
     </Grid>
 

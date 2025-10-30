@@ -2,6 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AppBundle.Avalonia.ViewModels;
 
+/// <summary>
+/// View model for individual application items
+/// </summary>
 public partial class AppItemViewModel : ViewModelBase
 {
     private readonly AppInfo app;

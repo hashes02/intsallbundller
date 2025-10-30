@@ -7,30 +7,29 @@ using AppBundle.Avalonia.ViewModels;
 
 namespace AppBundle.Avalonia.Services;
 
+/// <summary>
+/// Handles application download and installation
+/// </summary>
 public class InstallationService
 {
-    private readonly HttpClient httpClient = new();
+    private static readonly HttpClient httpClient = new HttpClient();
 
+    /// <summary>
+    /// Downloads and installs an application
+    /// </summary>
     public async Task InstallAppAsync(AppItemViewModel appViewModel, IProgress<string> progress)
     {
+        var tempFilePath = string.Empty;
+        
         try
         {
             progress.Report("🔄 Resolving download URL...");
             appViewModel.Status = InstallStatus.Downloading;
             appViewModel.StatusText = "🔄 Resolving download URL...";
 
-            // Get the app data
-            var app = new AppInfo 
-            { 
-                Id = appViewModel.Id, 
-                Name = appViewModel.Name, 
-                Source = GetAppSource(appViewModel.Id),
-                Args = GetAppArgs(appViewModel.Id),
-                Detect = GetAppDetect(appViewModel.Id)
-            };
-
-            // Resolve the download URL
+            var app = CreateAppInfoFromViewModel(appViewModel);
             var resolvedApp = await AppResolver.ResolveAppAsync(app);
+            
             if (resolvedApp == null)
             {
                 throw new Exception("Failed to resolve download URL");
@@ -39,17 +38,18 @@ public class InstallationService
             progress.Report("🔄 Downloading...");
             appViewModel.StatusText = "🔄 Downloading...";
 
-            // Download the installer
-            var tempPath = Path.GetTempPath();
-            var fileName = Path.GetFileName(new Uri(resolvedApp.Url).LocalPath);
-            var filePath = Path.Combine(tempPath, fileName);
+            tempFilePath = await DownloadFileAsync(resolvedApp.Url);
 
-            using (var response = await httpClient.GetAsync(resolvedApp.Url))
+            // Verify hash if provided
+            if (!string.IsNullOrWhiteSpace(resolvedApp.Sha256))
             {
-                response.EnsureSuccessStatusCode();
-                using (var fileStream = File.Create(filePath))
+                progress.Report("🔍 Verifying file integrity...");
+                appViewModel.StatusText = "🔍 Verifying...";
+                
+                var isValid = await AppResolver.VerifySha256Async(tempFilePath, resolvedApp.Sha256);
+                if (!isValid)
                 {
-                    await response.Content.CopyToAsync(fileStream);
+                    throw new Exception("File integrity check failed");
                 }
             }
 
@@ -57,50 +57,85 @@ public class InstallationService
             appViewModel.Status = InstallStatus.Installing;
             appViewModel.StatusText = "⚙️ Installing...";
 
-            // Install the application
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = filePath,
-                Arguments = app.Args ?? "",
-                UseShellExecute = true,
-                Verb = "runas", // Run as administrator
-                CreateNoWindow = true
-            };
+            await InstallApplicationAsync(tempFilePath, app.Args ?? "/S");
 
-            using (var process = Process.Start(processInfo))
-            {
-                if (process != null)
-                {
-                    await process.WaitForExitAsync();
-                    
-                    if (process.ExitCode == 0)
-                    {
-                        progress.Report("✅ Installed successfully");
-                        appViewModel.Status = InstallStatus.Done;
-                        appViewModel.StatusText = "✅ Installed successfully";
-                    }
-                    else
-                    {
-                        throw new Exception($"Installation failed with exit code {process.ExitCode}");
-                    }
-                }
-            }
-
-            // Clean up temp file
-            try
-            {
-                File.Delete(filePath);
-            }
-            catch
-            {
-                // Ignore cleanup errors
-            }
+            progress.Report("✅ Installed successfully");
+            appViewModel.Status = InstallStatus.Done;
+            appViewModel.StatusText = "✅ Installed successfully";
         }
         catch (Exception ex)
         {
             progress.Report($"❌ Failed: {ex.Message}");
             appViewModel.Status = InstallStatus.Failed;
             appViewModel.StatusText = $"❌ Failed: {ex.Message}";
+        }
+        finally
+        {
+            // Clean up temp file
+            if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+            {
+                try
+                {
+                    File.Delete(tempFilePath);
+                }
+                catch
+                {
+                    // Ignore cleanup errors
+                }
+            }
+        }
+    }
+
+    private AppInfo CreateAppInfoFromViewModel(AppItemViewModel appViewModel)
+    {
+        return new AppInfo
+        {
+            Id = appViewModel.Id,
+            Name = appViewModel.Name,
+            Source = GetAppSource(appViewModel.Id),
+            Args = GetAppArgs(appViewModel.Id),
+            Detect = GetAppDetect(appViewModel.Id)
+        };
+    }
+
+    private async Task<string> DownloadFileAsync(string url)
+    {
+        var tempPath = Path.GetTempPath();
+        var fileName = $"AppBundle_{Guid.NewGuid()}_{Path.GetFileName(new Uri(url).LocalPath)}";
+        var filePath = Path.Combine(tempPath, fileName);
+
+        using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+        
+        using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+        await response.Content.CopyToAsync(fileStream);
+
+        return filePath;
+    }
+
+    private async Task InstallApplicationAsync(string installerPath, string args)
+    {
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = installerPath,
+            Arguments = args,
+            UseShellExecute = true,
+            Verb = "runas",
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(processInfo);
+        if (process == null)
+        {
+            throw new Exception("Failed to start installer process");
+        }
+
+        await process.WaitForExitAsync();
+
+        // 1641 and 3010 are Windows Installer success codes indicating restart required
+        if (process.ExitCode != 0 && process.ExitCode != 1641 && process.ExitCode != 3010)
+        {
+            throw new Exception($"Installation failed with exit code {process.ExitCode}");
         }
     }
 

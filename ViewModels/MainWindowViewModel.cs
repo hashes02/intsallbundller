@@ -1,72 +1,47 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AppBundle.Avalonia.Services;
 
 namespace AppBundle.Avalonia.ViewModels;
 
+/// <summary>
+/// Wizard-based main window view model with multiple pages
+/// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly InstallationService installationService = new();
 
     [ObservableProperty]
-    private string title = "AppBundle";
+    private int currentPage = 0;
 
     [ObservableProperty]
-    private string subtitle = "Install essential applications with one click";
+    private int overallProgress = 0;
 
     [ObservableProperty]
-    private string searchText = "";
+    private bool isIndeterminate = false;
 
     [ObservableProperty]
-    private string installButtonText = "Select applications to install";
+    private string statusText = "Preparing installation...";
 
     [ObservableProperty]
-    private bool isInstalling = false;
-
-    [ObservableProperty]
-    private bool canInstall = false;
+    private string successMessage = "";
 
     public ObservableCollection<AppItemViewModel> Apps { get; } = new();
-    public ObservableCollection<AppItemViewModel> FilteredApps { get; } = new();
+    public ObservableCollection<string> InstallLogs { get; } = new();
+
+    public int SelectedCount => Apps.Count(a => a.IsSelected);
+    public bool HasSelections => SelectedCount > 0;
 
     public MainWindowViewModel()
     {
-        // Add test data immediately for debugging
-        AddTestData();
         _ = LoadAppsAsync();
-    }
-
-    private void AddTestData()
-    {
-        // Add some test apps to verify UI is working
-        var testApps = new[]
-        {
-            new AppInfo { Id = "test1", Name = "Test Application 1", IsSelected = true },
-            new AppInfo { Id = "test2", Name = "Test Application 2", IsSelected = false },
-            new AppInfo { Id = "test3", Name = "Test Application 3", IsSelected = false }
-        };
-
-        foreach (var app in testApps)
-        {
-            var appViewModel = new AppItemViewModel(app);
-            appViewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(AppItemViewModel.IsSelected))
-                {
-                    UpdateInstallButton();
-                }
-            };
-            Apps.Add(appViewModel);
-            FilteredApps.Add(appViewModel);
-        }
-        
-        UpdateInstallButton();
     }
 
     private async Task LoadAppsAsync()
@@ -74,107 +49,121 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("AppBundle.Avalonia.apps.json");
-            if (stream != null)
+            var resourceName = "AppBundle.apps.json";
+            
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
             {
-                using var reader = new StreamReader(stream);
-                var json = await reader.ReadToEndAsync();
-                var appCollection = JsonSerializer.Deserialize<AppCollection>(json);
-                if (appCollection != null)
-                {
-                    foreach (var app in appCollection.Apps)
-                    {
-                        var appViewModel = new AppItemViewModel(app);
-                        appViewModel.PropertyChanged += (s, e) =>
-                        {
-                            if (e.PropertyName == nameof(AppItemViewModel.IsSelected))
-                            {
-                                UpdateInstallButton();
-                            }
-                        };
-                        Apps.Add(appViewModel);
-                        FilteredApps.Add(appViewModel);
-                    }
-                }
+                var resources = assembly.GetManifestResourceNames();
+                System.Diagnostics.Debug.WriteLine($"Available resources: {string.Join(", ", resources)}");
+                throw new FileNotFoundException($"Embedded resource '{resourceName}' not found");
             }
-            UpdateInstallButton();
+
+            var appCollection = await JsonSerializer.DeserializeAsync<AppCollection>(stream);
+            if (appCollection?.Apps == null)
+            {
+                throw new InvalidOperationException("Failed to deserialize apps.json or apps list is null");
+            }
+
+            foreach (var app in appCollection.Apps)
+            {
+                var appViewModel = new AppItemViewModel(app);
+                appViewModel.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(AppItemViewModel.IsSelected))
+                    {
+                        OnPropertyChanged(nameof(SelectedCount));
+                        OnPropertyChanged(nameof(HasSelections));
+                    }
+                };
+                Apps.Add(appViewModel);
+            }
         }
         catch (Exception ex)
         {
-            // Log error - for now just ignore
             System.Diagnostics.Debug.WriteLine($"Error loading apps: {ex.Message}");
-        }
-    }
-
-    partial void OnSearchTextChanged(string value)
-    {
-        FilterApps();
-    }
-
-    private void FilterApps()
-    {
-        FilteredApps.Clear();
-        var filtered = string.IsNullOrWhiteSpace(SearchText) 
-            ? Apps 
-            : Apps.Where(app => app.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
-
-        foreach (var app in filtered)
-        {
-            FilteredApps.Add(app);
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
         }
     }
 
     [RelayCommand]
-    private async Task InstallSelectedApps()
+    private void Next()
     {
-        if (IsInstalling) return;
-
-        var selectedApps = Apps.Where(a => a.IsSelected).ToList();
-        if (!selectedApps.Any()) return;
-
-        IsInstalling = true;
-        InstallButtonText = "Installing...";
-
-        try
-        {
-            // Install apps sequentially to avoid conflicts
-            foreach (var appViewModel in selectedApps)
-            {
-                var progress = new Progress<string>(status =>
-                {
-                    // Progress updates are handled in the InstallationService
-                });
-
-                await installationService.InstallAppAsync(appViewModel, progress);
-            }
-        }
-        finally
-        {
-            IsInstalling = false;
-            UpdateInstallButton();
-        }
+        if (CurrentPage < 3)
+            CurrentPage++;
     }
 
-    private void UpdateInstallButton()
+    [RelayCommand]
+    private void Back()
     {
-        var selectedCount = Apps.Count(a => a.IsSelected);
-        CanInstall = selectedCount > 0 && !IsInstalling;
+        if (CurrentPage > 0)
+            CurrentPage--;
+    }
 
-        if (IsInstalling)
+    [RelayCommand]
+    private void Cancel()
+    {
+        Environment.Exit(0);
+    }
+
+    [RelayCommand]
+    private async Task Install()
+    {
+        if (!HasSelections) return;
+
+        CurrentPage = 2; // Progress page
+        IsIndeterminate = false;
+
+        var selectedApps = Apps.Where(a => a.IsSelected).ToList();
+        var totalApps = selectedApps.Count;
+        var currentAppIndex = 0;
+
+        InstallLogs.Clear();
+        InstallLogs.Add($"Starting installation of {totalApps} applications...");
+
+        foreach (var appViewModel in selectedApps)
         {
-            InstallButtonText = "Installing...";
+            currentAppIndex++;
+            OverallProgress = (int)((currentAppIndex - 1) / (double)totalApps * 100);
+            StatusText = $"Installing {appViewModel.Name} ({currentAppIndex} of {totalApps})...";
+            
+            InstallLogs.Add($"[{DateTime.Now:HH:mm:ss}] Installing {appViewModel.Name}...");
+
+            var progress = new Progress<string>(status =>
+            {
+                StatusText = status;
+                InstallLogs.Add($"[{DateTime.Now:HH:mm:ss}] {status}");
+            });
+
+            await installationService.InstallAppAsync(appViewModel, progress);
+
+            if (appViewModel.Status == InstallStatus.Done)
+            {
+                InstallLogs.Add($"[{DateTime.Now:HH:mm:ss}] ✓ {appViewModel.Name} installed successfully");
+            }
+            else if (appViewModel.Status == InstallStatus.Failed)
+            {
+                InstallLogs.Add($"[{DateTime.Now:HH:mm:ss}] ✗ {appViewModel.Name} failed: {appViewModel.StatusText}");
+            }
         }
-        else if (selectedCount == 0)
-        {
-            InstallButtonText = "Select applications to install";
-        }
-        else if (selectedCount == 1)
-        {
-            InstallButtonText = "Install 1 application";
-        }
-        else
-        {
-            InstallButtonText = $"Install {selectedCount} applications";
-        }
+
+        OverallProgress = 100;
+        StatusText = "Installation complete!";
+        
+        var successCount = selectedApps.Count(a => a.Status == InstallStatus.Done);
+        var failCount = selectedApps.Count(a => a.Status == InstallStatus.Failed);
+        
+        SuccessMessage = successCount == totalApps 
+            ? $"Successfully installed all {successCount} applications!" 
+            : $"Installed {successCount} of {totalApps} applications. {failCount} failed.";
+
+        await Task.Delay(1000);
+        CurrentPage = 3; // Finish page
+    }
+
+    [RelayCommand]
+    private void Finish()
+    {
+        Environment.Exit(0);
     }
 }

@@ -5,11 +5,14 @@ using System;
 
 namespace AppBundle.Avalonia;
 
+/// <summary>
+/// Locates and instantiates views based on view models
+/// </summary>
 public class ViewLocator : IDataTemplate
 {
     public Control? Build(object? data)
     {
-        if (data is null)
+        if (data == null)
             return null;
 
         var name = data.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
@@ -17,11 +20,14 @@ public class ViewLocator : IDataTemplate
 
         if (type != null)
         {
-            var control = (Control)Activator.CreateInstance(type)!;
-            return control;
+            var instance = Activator.CreateInstance(type);
+            if (instance is Control control)
+            {
+                return control;
+            }
         }
 
-        return new TextBlock { Text = "Not Found: " + name };
+        return new TextBlock { Text = $"View not found: {name}" };
     }
 
     public bool Match(object? data)

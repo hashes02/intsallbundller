@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace AppBundle.Avalonia
 {
+    /// <summary>
+    /// Resolves application download URLs and metadata from various sources
+    /// </summary>
     public static class AppResolver
     {
         private static readonly HttpClient httpClient = new HttpClient();
@@ -21,6 +23,9 @@ namespace AppBundle.Avalonia
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
         }
 
+        /// <summary>
+        /// Resolves download URL for an application, using cache when available
+        /// </summary>
         public static async Task<ResolvedApp?> ResolveAppAsync(AppInfo app)
         {
             // Check cache first
@@ -58,29 +63,28 @@ namespace AppBundle.Avalonia
             return resolved;
         }
 
+        /// <summary>
+        /// Resolves Chrome download URL using Omaha update protocol
+        /// </summary>
         private static async Task<ResolvedApp?> ResolveOmahaAsync(AppInfo app)
         {
-            // Use the official Chrome download page with platform param for latest stable
             var downloadUrl = "https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe";
             
             try
             {
-                // Follow redirect to get the actual latest file (handles versioning)
-                var finalUrl = await FollowRedirect(downloadUrl);
+                var finalUrl = await FollowRedirectAsync(downloadUrl);
                 
-                var hash = await ComputeHashAsync(finalUrl);
                 return new ResolvedApp
                 {
                     Url = finalUrl,
                     Version = "Latest",
-                    Sha256 = $"sha256:{hash}"
+                    Sha256 = null // Skip hash computation for large files
                 };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Chrome resolver error: {ex.Message}");
                 
-                // Fallback to direct URL without hash verification
                 return new ResolvedApp
                 {
                     Url = downloadUrl,
@@ -90,14 +94,20 @@ namespace AppBundle.Avalonia
             }
         }
 
-        private static async Task<string> FollowRedirect(string url)
+        /// <summary>
+        /// Follows HTTP redirects to get the final URL
+        /// </summary>
+        private static async Task<string> FollowRedirectAsync(string url)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Head, url);  // HEAD for efficiency
+            using var request = new HttpRequestMessage(HttpMethod.Head, url);
             request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
             using var response = await httpClient.SendAsync(request);
             return response.RequestMessage?.RequestUri?.AbsoluteUri ?? url;
         }
 
+        /// <summary>
+        /// Computes SHA256 hash from a file path
+        /// </summary>
         private static async Task<string> ComputeHashAsync(string url)
         {
             using var response = await httpClient.GetAsync(url);
@@ -107,14 +117,15 @@ namespace AppBundle.Avalonia
             return Convert.ToHexString(hashBytes).ToLowerInvariant();
         }
 
+        /// <summary>
+        /// Resolves VLC download URL from VideoLAN website
+        /// </summary>
         private static async Task<ResolvedApp?> ResolveVideolanAsync(AppInfo app)
         {
-            // VLC VideoLAN resolver
             try
             {
                 var response = await httpClient.GetStringAsync("https://get.videolan.org/vlc/last/win64/");
                 
-                // Parse HTML to find latest .exe and .sha256 files
                 var exePattern = @"href=""([^""]*\.exe)""";
                 var sha256Pattern = @"href=""([^""]*\.sha256)""";
                 
@@ -134,11 +145,11 @@ namespace AppBundle.Avalonia
                             var sha256File = sha256Match.Groups[1].Value;
                             var sha256Url = $"https://get.videolan.org/vlc/last/win64/{sha256File}";
                             var sha256Response = await httpClient.GetStringAsync(sha256Url);
-                            sha256 = sha256Response.Split(' ')[0].Trim(); // Get hash part only
+                            sha256 = sha256Response.Split(' ')[0].Trim();
                         }
                         catch
                         {
-                            // Ignore SHA256 fetch errors
+                            // SHA256 fetch is optional
                         }
                     }
                     
@@ -157,6 +168,9 @@ namespace AppBundle.Avalonia
             return null;
         }
 
+        /// <summary>
+        /// Returns direct URL from app configuration
+        /// </summary>
         private static ResolvedApp? ResolveDirect(AppInfo app)
         {
             // Direct URL - use as provided in JSON
@@ -172,28 +186,42 @@ namespace AppBundle.Avalonia
             return null;
         }
 
+        /// <summary>
+        /// Computes SHA256 hash of a file
+        /// </summary>
         public static async Task<string?> ComputeSha256Async(string filePath)
         {
+            if (!File.Exists(filePath))
+                return null;
+
             try
             {
                 using var sha256 = SHA256.Create();
                 using var stream = File.OpenRead(filePath);
-                var hash = await Task.Run(() => sha256.ComputeHash(stream));
+                var hash = await sha256.ComputeHashAsync(stream);
                 return Convert.ToHexString(hash).ToLowerInvariant();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error computing SHA256 for {filePath}: {ex.Message}");
                 return null;
             }
         }
 
-        public static async Task<bool> VerifySha256Async(string filePath, string expectedSha256)
+        /// <summary>
+        /// Verifies file hash against expected SHA256
+        /// </summary>
+        public static async Task<bool> VerifySha256Async(string filePath, string? expectedSha256)
         {
-            if (string.IsNullOrEmpty(expectedSha256))
-                return true; // No hash to verify
+            if (string.IsNullOrWhiteSpace(expectedSha256))
+                return true;
 
             var actualSha256 = await ComputeSha256Async(filePath);
-            return string.Equals(actualSha256, expectedSha256, StringComparison.OrdinalIgnoreCase);
+            if (actualSha256 == null)
+                return false;
+
+            return string.Equals(actualSha256, expectedSha256.Replace("sha256:", "", StringComparison.OrdinalIgnoreCase), 
+                StringComparison.OrdinalIgnoreCase);
         }
     }
 }

@@ -4,48 +4,32 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using AppBundle.Avalonia.ViewModels;
 using AppBundle.Avalonia.Views;
-using System;
 
 namespace AppBundle.Avalonia;
 
+/// <summary>
+/// Main application class
+/// </summary>
 public partial class App : Application
 {
     public override void Initialize()
     {
-        try
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error initializing XAML: {ex.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            throw;
-        }
+        AvaloniaXamlLoader.Load(this);
     }
 
     public override void OnFrameworkInitializationCompleted()
     {
-        try
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            // Remove Avalonia data validation to avoid duplicates with CommunityToolkit
+            BindingPlugins.DataValidators.RemoveAt(0);
+            
+            desktop.MainWindow = new MainWindow
             {
-                // Line below is needed to remove Avalonia data validation.
-                // Without this line you will get duplicate validations from both Avalonia and CT
-                BindingPlugins.DataValidators.RemoveAt(0);
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel(),
-                };
-            }
+                DataContext = new MainWindowViewModel(),
+            };
+        }
 
-            base.OnFrameworkInitializationCompleted();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error completing framework initialization: {ex.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            throw;
-        }
+        base.OnFrameworkInitializationCompleted();
     }
 }
